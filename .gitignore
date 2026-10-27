@@ -1,0 +1,91 @@
+const form = document.getElementById('chatForm');
+const input = document.getElementById('messageInput');
+const messages = document.getElementById('messages');
+const resetChat = document.getElementById('resetChat');
+const quickActions = document.querySelectorAll('.chip');
+
+function addMessage(text, sender = 'bot') {
+  const messageRow = document.createElement('div');
+  messageRow.className = `message ${sender}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = sender === 'user' ? 'U' : 'B';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  messageRow.appendChild(avatar);
+  messageRow.appendChild(bubble);
+  messages.appendChild(messageRow);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function setLoading(isLoading) {
+  const sendButton = form.querySelector('button');
+  sendButton.disabled = isLoading;
+  sendButton.textContent = isLoading ? '...' : 'Envoyer';
+}
+
+async function askBot(message) {
+  setLoading(true);
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Erreur serveur');
+    }
+
+    addMessage(data.reply, 'bot');
+  } catch (error) {
+    addMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
+    console.error(error);
+  } finally {
+    setLoading(false);
+    input.value = '';
+    input.focus();
+  }
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const value = input.value.trim();
+  if (!value) return;
+
+  addMessage(value, 'user');
+  await askBot(value);
+});
+
+quickActions.forEach((button) => {
+  button.addEventListener('click', () => {
+    const message = button.dataset.message;
+    if (!message) return;
+
+    addMessage(message, 'user');
+    askBot(message);
+  });
+});
+
+resetChat.addEventListener('click', () => {
+  messages.innerHTML = `
+    <div class="message bot">
+      <div class="avatar">B</div>
+      <div class="bubble">
+        Bonjour ! Je suis votre assistant. Posez-moi une question et je vous répondrai de manière claire et utile.
+      </div>
+    </div>
+  `;
+  input.value = '';
+  input.focus();
+});

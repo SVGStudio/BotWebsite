@@ -1,1 +1,4 @@
-# BotWebsite
+node_modules
+.env
+.DS_Store
+npm-debug.log*
