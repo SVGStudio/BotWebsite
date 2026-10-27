@@ -5,10 +5,16 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev:node": "node server.js",
+    "dev": "wrangler pages dev public --compatibility-date=2024-09-19",
+    "build": "echo 'Static site — no build step required'",
+    "deploy:cloudflare": "wrangler pages deploy public"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "wrangler": "^3.106.0"
   }
 }
